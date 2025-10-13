@@ -62,7 +62,7 @@ function modifiedGrid(grid, coordinates, player) {
   const players = ['O', 'X'];
   const r = coordinates[0];
   const c = coordinates[1];
-  grid[r][c] = players[player];
+  grid[r][c] = players[(player + 1) / 2];
   return grid;
 }
 
@@ -98,8 +98,6 @@ function hasWon(grid) {
     for (let j = 0; j < winPattern[i].length; j++) {
       const r = winPattern[i][j][0];
       const c = winPattern[i][j][1];
-      // console.log(r,c);
-      // console.log(grid[r][c]);
       result.push(grid[r][c]);
     }
 
@@ -109,29 +107,6 @@ function hasWon(grid) {
 
   }
   return false;
-}
-
-function play(grid, currentPlayer, leftMoves) {
-  console.log(makeGrid(grid));
-
-  while (leftMoves !== 0) {
-    const coordinates = currentPlayer === 0 ? userInput(currentPlayer, grid) : computerInput(grid);
-    console.clear();
-    grid = modifiedGrid(grid, coordinates, currentPlayer);
-    console.log(makeGrid(grid));
-
-    if (hasWon(grid)) {
-      console.log(`Congratulations! Player ${currentPlayer} Won!🏆`);
-      playAgain();
-      return;
-    }
-    currentPlayer = (currentPlayer + 1) % 2;
-    leftMoves--;
-  }
-
-  console.log("Game Over!", "❌");
-  playAgain();
-  return;
 }
 
 function copyGrid(grid) {
@@ -145,75 +120,123 @@ function copyGrid(grid) {
   return copyOfGrid;
 }
 
-function possibleResult(grid, player) {
-  // const possibleResults = [];
+function predictedResult(grid, player, leftMoves) {
   if (hasWon(grid)) {
-    return player;
-  }
-  return 0;
-
-}
-function currentTurn(player) {
-  return player === -1 ? "O" : "X";
-}
-
-function nextCoordinates(grid, player, leftMoves) {
-  console.log(grid);
-  if (hasWon(grid)) {
-    return player;
+    return player * (-1);
   }
   if (leftMoves === 0) {
     return 0;
   }
 
-  const copyOfGrid = copyGrid(grid);
   const possibleResults = [];
-  const min = Infinity;
-  const max = -Infinity;
 
   for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 3; j++) {
+      const copyOfGrid = copyGrid(grid);
       if (copyOfGrid[i][j] === " ") {
         copyOfGrid[i][j] = currentTurn(player);
-        possibleResults[i][j] = nextCoordinates(copyGrid, player * (-1), leftMoves - 1);
+        const result = predictedResult(copyOfGrid, player * (-1), leftMoves - 1);
+        possibleResults.push(parseInt(result));
+      }
+    }
+  }
+  return possibleResults;
+}
+
+function currentTurn(player) {
+  return player === -1 ? "O" : "X";
+}
+
+function nextCoordinatesForMax(grid, possibleResults) {
+  let max = -Infinity;
+  let coordinates = [];
+  let count = 0;
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      if (grid[r][c] === " ") {
+
+        if (max < possibleResults[count]) {
+          max = possibleResults[count];
+          coordinates = [r, c];
+        }
+        count++;
+
+      }
+    }
+  }
+  return coordinates;
+}
+
+function nextCoordinatesForMin(grid, possibleResults) {
+  let min = Infinity;
+  let coordinates = [];
+  let count = 0
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      if (grid[r][c] === " ") {
+
+        if (min > possibleResults[count]) {
+          min = possibleResults[count];
+          coordinates = [r, c];
+        }
+        count++;
       }
     }
   }
 
-  // if(player === 1) {
-  //   let coordinates = [];
-  //   for (let r = 0; r < 3; r++) {
-  //     for (let c = 0; c < 3; c++) {
-  //       max = Math.max(max, possibleResult[r][c]);
-  //       coordinates = [r,c];
-  //     }
-  //   }
+  return coordinates;
+}
 
-  //   return coordinates;
-  // } 
+function nextCoordinates(grid, player, leftMoves) {
+  const copyOfGrid = copyGrid(grid);
+  const possibleResults = predictedResult(copyOfGrid, player, leftMoves);
 
-  //  if(player === -1) {
-  //   let coordinates = [];
-  //   for (let r = 0; r < 3; r++) {
-  //     for (let c = 0; c < 3; c++) {
-  //       max = Math.min(max, possibleResult[r][c]);
-  //       coordinates = [r,c];
-  //     }
-  //   }
+  // console.log(possibleResults);
 
-  //   return coordinates;
-  // } 
+  if (player === 1) {
+    return nextCoordinatesForMax(grid, possibleResults);
+  }
 
+  if (player === -1) {
+    return nextCoordinatesForMin(grid, possibleResults);
+  }
 
+  // return possibleResults;
+}
+
+function play(grid, currentPlayer, leftMoves) {
+  console.log(makeGrid(grid));
+
+  while (leftMoves !== 0) {
+    const coordinates = currentPlayer === -1 ? userInput(currentPlayer, grid) : nextCoordinates(copyGrid(grid), currentPlayer, leftMoves);
+    console.clear();
+    // console.log(coordinates);
+    grid = modifiedGrid(grid, coordinates, currentPlayer);
+    // console.log(grid);
+    console.log(makeGrid(grid));
+
+    if (hasWon(grid)) {
+      console.log(`Congratulations! Player ${currentPlayer} Won!🏆`);
+      playAgain();
+      return;
+    }
+    currentPlayer = currentPlayer * (-1);
+    leftMoves--;
+  }
+
+  console.log("Game Over!", "❌");
+  playAgain();
+  return;
 }
 
 function main() {
-  let currentPlayer = 0;
-  let grid = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]];
+  let currentPlayer = -1;
+  // let grid = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]];
   const message = "\n --Note : Coordinates must be between 0 and 2 and must be separated by only 1 space! \n --Example : 0 2 \n"
-  console.log(message);
-  play(grid, currentPlayer, 9);
-  // let grid = [["O", "X ", "X "], ["X", "O", "O"], ["O", "X", " "]];
-  // console.log(nextCoordinates(grid, -1, 1));
+  // console.log(message);
+  // play(grid, currentPlayer, 9);
+
+  let grid = [["X", "O", " "], [" ", "O", " "], [" ", " ", " "]];
+  console.log(nextCoordinates(grid, 1, 6));
 }
 main();
