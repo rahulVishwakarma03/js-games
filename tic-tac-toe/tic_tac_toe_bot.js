@@ -35,9 +35,10 @@ function areInvalidCoordinates(r, c, grid) {
 }
 
 function userInput(player, grid) {
-  const coordinates = prompt("Enter Coordinates : ").split(" ");
-  const r = parseInt(coordinates[0]);
-  const c = parseInt(coordinates[1]);
+  const position = parseInt(prompt("Enter block number : ")) - 1;
+
+  const r = Math.floor(position / 3);
+  const c = position % 3;
 
   if (areInvalidCoordinates(r, c, grid)) {
     console.log(areInvalidCoordinates(r, c, grid));
@@ -136,6 +137,7 @@ function minElementInArray(array) {
 }
 
 function predictedResult(grid, player, currentMove, leftMoves) {
+  // console.log(grid);
   const copyOfGrid1 = copyGrid(grid);
   if (hasWon(grid)) {
     return player * (-1);
@@ -152,10 +154,12 @@ function predictedResult(grid, player, currentMove, leftMoves) {
       if (copyOfGrid2[i][j] === " ") {
         copyOfGrid2[i][j] = currentTurn(player);
         const result = predictedResult(copyOfGrid2, player * (-1), currentMove, leftMoves - 1);
+
         possibleResults.push(result);
       }
     }
   }
+  // console.log(possibleResults);
 
   if (currentMove === leftMoves) {
     return possibleResults;
@@ -250,7 +254,7 @@ function play(grid, currentPlayer, currentMove, leftMoves) {
     currentMove--;
   }
 
-  console.log("Game Over!", "❌");
+  console.log("It's draw!", "❌");
   playAgain();
   return;
 }
@@ -258,7 +262,8 @@ function play(grid, currentPlayer, currentMove, leftMoves) {
 function main() {
   let currentPlayer = -1;
   let grid = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]];
-  const message = "\n --Note : Coordinates must be between 0 and 2 and must be separated by only 1 space! \n --Example : 0 2 \n"
+
+  const message = "\n --Note : Input should be between 1 and 9! \n --Example : 1,2,3,4,5,6,7,8,9 \n"
   console.log(message);
   play(grid, currentPlayer, 9, 9);
 
