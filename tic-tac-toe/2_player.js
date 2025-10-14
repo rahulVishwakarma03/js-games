@@ -36,9 +36,10 @@ function areInvalidCoordinates(r, c, grid) {
 
 function userInput(player, grid) {
   console.log(`\n----Player (${player})----\n`);
-  const coordinates = prompt("Enter Coordinates : ").split(" ");
-  const r = parseInt(coordinates[0]);
-  const c = parseInt(coordinates[1]);
+
+  const position = parseInt(prompt("Enter block number : ")) - 1;
+  const r = Math.floor(position / 3);
+  const c = position % 3;
 
   if (areInvalidCoordinates(r, c, grid)) {
     console.log(areInvalidCoordinates(r, c, grid));
