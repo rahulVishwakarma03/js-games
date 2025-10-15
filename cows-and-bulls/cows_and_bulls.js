@@ -10,12 +10,12 @@ function generateDigits() {
 }
 
 function isValidDigits(digits) {
-
+  const validDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   if (digits.length > 4) {
     return false;
   }
   for (let index = 0; index < digits.length; index++) {
-    if (digits[index] < 0 || digits[index] > 9) {
+    if (!validDigits.includes(digits[index])) {
       return false;
     }
   }
@@ -35,13 +35,13 @@ function userInput() {
 
   const stringOfDigits = (prompt("Enter 4 digit : "));
 
-  const digits = stringToArrayOfDigits(stringOfDigits);
+  let digits = stringToArrayOfDigits(stringOfDigits);
+  console.log(digits);
 
-
-  // if(!isValidDigits(digits)){
-  //   console.log("Enter 4 valid digit between 0 and 9!");
-  //   userInput();
-  // }
+  if (!isValidDigits(digits)) {
+    console.log("\n-----Enter 4 valid digit between 0 and 9!-----\n");
+    digits = userInput();
+  }
 
   return digits;
 }
@@ -84,24 +84,37 @@ function isWinner(assumed, actual) {
   return true;
 }
 
+function displayMessage(inputedDigits, cowsAndBulls, leftMoves) {
+  console.log(`  Cows | Bulls | Digits `);
+  console.log(`-------|-------|--------`);
+  for (let index = 0; index < inputedDigits.length; index++) {
+    console.log(`   ${cowsAndBulls[index][0]}   |   ${cowsAndBulls[index][1]}   | ${inputedDigits[index]} `);
+  }
+  console.log("\n\n");
+}
+
 function play(leftMoves) {
   const actualDigits = generateDigits();
+  const inputedDigits = [];
+  const cowsAndBulls = [];
 
   while (leftMoves !== 0) {
     const assumedDigits = userInput();
+    inputedDigits.push(assumedDigits);
     if (isWinner(assumedDigits, actualDigits)) {
       console.log("Congratulation, You Won!");
       return;
     }
 
-    const cowsAndBulls = getCowsAndBulls(actualDigits, assumedDigits);
-    console.log(`cows = ${cowsAndBulls[0]}`);
-    console.log(`Bulls = ${cowsAndBulls[1]}\n`);
+    cowsAndBulls.push(getCowsAndBulls(actualDigits, assumedDigits));
+    console.clear();
+    displayMessage(inputedDigits, cowsAndBulls, leftMoves);
 
     leftMoves--;
   }
 
   console.log("You Lose!");
+  console.log(`Actual digits is ${actualDigits}`);
   return;
 }
 
